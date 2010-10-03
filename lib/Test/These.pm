@@ -53,15 +53,17 @@ sub _go {
     $self->{block}();
 
 
+    my $i = 0;
     for my $case ( @{$self->{cases}} ) {
         try {
             my $v = $self->{sub_code}($case);
-            $self->{sub_success}($v);
+            $self->{sub_success}($v, $i);
         }
         catch {
             my $msg = shift;
-            $self->{sub_error}($msg);
+            $self->{sub_error}($msg, $i);
         };
+        $i++;
     }
 }
 
@@ -141,14 +143,14 @@ Test::These - tests these.
 
       # no problem in "code" block
       success {
-          my $got = shift;  # result of "code" block
+          my ($got, $i) = @_;  # result of "code" block, and index of case
           is $got, $expected;
           ...
       };
 
       # problem occured in "code" block
       error {
-          my $got = shift;  # "$@" value(?)
+          my ($got, $i) = @_;  # "$@" value(?), and index of case
           is $got, $expedted;
           ...
       };
