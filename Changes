@@ -1,4 +1,8 @@
 Revision history for Perl extension Test::These
 
-0.01    Sun Oct  3 14:01:02 2010
-        - original version
+0.00_02  Sun Oct  3 14:31:05 2010
+         - mod: "success" block and "error" block
+
+0.00_01  Sun Oct  3 14:01:02 2010
+         - original version
+         - code from https://gist.github.com/607630/b98a5b5c481a23183fcce470d7f2156363692e9a
