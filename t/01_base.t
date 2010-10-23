@@ -20,4 +20,4 @@ isa_ok $t, $isa;
 undef $t;
 
 
-done_testing 2;
+done_testing;
