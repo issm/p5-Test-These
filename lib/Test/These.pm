@@ -158,7 +158,7 @@ Test::These - tests these.
 
 =head1 DESCRIPTION
 
-Test::These is hogehoge.
+Test::These is hoge.
 
 =head1 CONSTRUCTOR
 
