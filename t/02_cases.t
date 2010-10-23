@@ -20,6 +20,14 @@ use Test::These;
     }
 };
 
+{
+    my $t = test_these {
+        cases [];
+    };
+
+    is ref($t->{cases}), 'ARRAY';
+};
+
 
 
 
