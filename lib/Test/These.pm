@@ -31,9 +31,9 @@ sub _build {
         my $self = bless {
             block       => $block,
             cases       => [],
-            sub_code    => sub {},
-            sub_success => sub {},
-            sub_error   => sub {},
+            _sub_code    => sub {},
+            _sub_success => sub {},
+            _sub_error   => sub {},
         }, $class;
         $self->_go;
         return $self;
@@ -56,12 +56,12 @@ sub _go {
     my $i = 0;
     for my $case ( @{$self->{cases}} ) {
         try {
-            my $v = $self->{sub_code}($case);
-            $self->{sub_success}($v, $i);
+            my $v = $self->{_sub_code}($case);
+            $self->{_sub_success}($v, $i);
         }
         catch {
             my $msg = shift;
-            $self->{sub_error}($msg, $i);
+            $self->{_sub_error}($msg, $i);
         };
         $i++;
     }
@@ -80,7 +80,7 @@ sub __x_code {
     my ($self) = @_;
     return sub {
         my ($code) = @_;
-        $self->{sub_code} = $code;
+        $self->{_sub_code} = $code;
     }
 }
 
@@ -88,7 +88,7 @@ sub __x_success {
     my ($self) = @_;
     return sub (&) {
         my ($code) = @_;
-        $self->{sub_success} = $code;
+        $self->{_sub_success} = $code;
     };
 }
 
@@ -96,7 +96,7 @@ sub __x_error {
     my ($self) = @_;
     return sub {
         my ($code) = @_;
-        $self->{sub_error} = $code;
+        $self->{_sub_error} = $code;
     };
 }
 
