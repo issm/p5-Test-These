@@ -197,6 +197,11 @@ sub __x_success_each {
     my ($self) = @_;
     return sub {
         my ($subs) = @_;
+
+        if ( ref($self->{cases}) eq 'HASH'  &&  ref($subs) eq 'ARRAY' ) {
+            die '"success_each" shoud be hashref, when "cases" is hashref.';
+        }
+
         $self->{_subs_success} = $subs;
     };
 }
@@ -205,6 +210,11 @@ sub __x_error_each {
     my ($self) = @_;
     return sub {
         my ($subs) = @_;
+
+        if ( ref($self->{cases}) eq 'HASH'  &&  ref($subs) eq 'ARRAY' ) {
+            die '"error_each" shoud be hashref, when "cases" is hashref.';
+        }
+
         $self->{_subs_error} = $subs;
     };
 }
