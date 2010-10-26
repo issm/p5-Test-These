@@ -5,7 +5,7 @@ use 5.008_001;
 use Carp;
 use Try::Tiny;
 
-our $VERSION = '0.00_05';
+our $VERSION = '0.00_06';
 
 
 sub import {
