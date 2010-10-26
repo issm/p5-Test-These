@@ -4,6 +4,7 @@ use warnings;
 use 5.008_001;
 use Carp;
 use Try::Tiny;
+use Test::More;
 
 our $VERSION = '0.00_06';
 
@@ -14,6 +15,12 @@ sub import {
 
     no strict 'refs';
     no warnings 'redefine';
+
+    # Test::More's EXPORTED functions
+    for my $f (@Test::More::EXPORT) {
+        *{"$caller\::$f"} = *{"Test::More::$f"};
+    }
+
     *{"$caller\::test_these"}   = _build($class);
     *{"$caller\::case"}         = sub ($) { goto &cases };
     *{"$caller\::cases"}        = sub ($) { goto &cases };

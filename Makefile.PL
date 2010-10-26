@@ -4,6 +4,7 @@ all_from 'lib/Test/These.pm';
 
 requires 'Carp';
 requires 'Try::Tiny';
+requires 'Test::More';
 
 test_requires 'Test::More';
 

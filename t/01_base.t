@@ -1,5 +1,4 @@
 use strict;
-use Test::More;
 use Test::These;
 use Try::Tiny;
 
