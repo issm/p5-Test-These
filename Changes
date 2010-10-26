@@ -1,5 +1,8 @@
 Revision history for Perl extension Test::These
 
+0.00_07  Wed Oct 27 08:40:00 2010
+         - add: functions of Test::More are imported
+
 0.00_06  Tue Oct 26 23:41:00 2010
          - mod: parameter check in "success_each" / "error_each"
 
