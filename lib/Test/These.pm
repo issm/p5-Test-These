@@ -230,7 +230,7 @@ __END__
 
 =head1 NAME
 
-Test::These - tests these.
+Test::These - tests these cases in one or less code.
 
 =head1 SYNOPSIS
 
@@ -267,9 +267,47 @@ Test::These - tests these.
       };
   };
 
+
+  #
+  test_these {
+      cases +{
+          case1 => \%params_case1,
+          case2 => \%params_case2,
+          case3 => \%params_case3,
+          ...
+      };
+
+      code { do_something(shift) };
+
+      success_each +{
+          # executed when 'code' successes in case 'case1'
+          case1 => sub {
+              my $got = shift;
+              ...
+          },
+          # executed when 'code' successes in case 'case2'
+          case2 => sub {
+              my $got = shift;
+              ...
+          },
+          # executed (same as 'case1') when 'code' successes in case 'case3'
+          case3 => 'case1',
+          ...
+      };
+
+      error_each +{
+          # executed when 'code' fails in case 'case1'
+          case1 => sub {
+              my $msg = shift;
+              ...
+          },
+          ...
+      };
+  };
+
 =head1 DESCRIPTION
 
-Test::These is hoge.
+Test::These is a module that tests in many parameter cases with one or less code.
 
 =head1 CONSTRUCTOR
 
