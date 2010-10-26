@@ -14,12 +14,14 @@ sub import {
 
     no strict 'refs';
     no warnings 'redefine';
-    *{"$caller\::test_these"} = _build($class);
-    *{"$caller\::case"}       = sub ($) { goto &cases };
-    *{"$caller\::cases"}      = sub ($) { goto &cases };
-    *{"$caller\::code"}       = sub (&) { goto &code };
-    *{"$caller\::success"}    = sub (&) { goto &success };
-    *{"$caller\::error"}      = sub (&) { goto &error };
+    *{"$caller\::test_these"}   = _build($class);
+    *{"$caller\::case"}         = sub ($) { goto &cases };
+    *{"$caller\::cases"}        = sub ($) { goto &cases };
+    *{"$caller\::code"}         = sub (&) { goto &code };
+    *{"$caller\::success"}      = sub (&) { goto &success };
+    *{"$caller\::error"}        = sub (&) { goto &error };
+    *{"$caller\::success_each"} = sub ($) { goto &success_each };
+    *{"$caller\::error_each"}   = sub ($) { goto &error_each };
 }
 
 
@@ -29,11 +31,13 @@ sub _build {
     return sub (&) {
         my ($block) = @_;
         my $self = bless {
-            block       => $block,
-            cases       => [],
-            _sub_code    => sub {},
-            _sub_success => sub {},
-            _sub_error   => sub {},
+            block         => $block,
+            cases         => [],
+            _sub_code     => sub {},
+            _sub_success  => sub {},
+            _sub_error    => sub {},
+            _subs_success => undef,
+            _subs_error   => undef,
         }, $class;
         $self->_go;
         return $self;
@@ -45,25 +49,102 @@ sub _go {
     my ($self) = @_;
 
     no warnings 'redefine';
-    local *cases   = __x_cases($self);
-    local *code    = __x_code($self);
-    local *success = __x_success($self);
-    local *error   = __x_error($self);
+    local *cases        = __x_cases($self);
+    local *code         = __x_code($self);
+    local *success      = __x_success($self);
+    local *error        = __x_error($self);
+    local *success_each = __x_success_each($self);
+    local *error_each   = __x_error_each($self);
 
     $self->{block}();
 
+    my $cases = $self->{cases};
 
-    my $i = 0;
-    for my $case ( @{$self->{cases}} ) {
-        try {
-            my $v = $self->{_sub_code}($case);
-            $self->{_sub_success}($v, $i);
+    # $cases as arrayref
+    if (ref $cases eq 'ARRAY') {
+        my $i = 0;
+        for my $case ( @{$self->{cases}} ) {
+            try {
+                my $v = $self->{_sub_code}($case);
+
+                # success_each 指定
+                if ( defined (my $subs = $self->{_subs_success}) ) {
+                    my $ref = ref $subs;
+                    my $sub;
+                    # $subs as arrayref
+                    if ($ref eq 'ARRAY') {
+                        $sub = $subs->[$i];
+                        $sub = $subs->[$sub]  if (ref $sub eq '');  # $sub がスカラ値 -> 別の sub へのエイリアス
+                    }
+                    # $subs as hashref
+                    elsif ($ref eq 'HASH') {
+                        $sub = $subs->{$i};
+                        $sub = $subs->{$sub}  if (ref $sub eq '');  # $sub がスカラ値 -> 別の sub へのエイリアス
+                    }
+                    $sub->($v, $i);
+                }
+                # success_each 未指定
+                else {
+                    $self->{_sub_success}($v, $i);
+                }
+            }
+            catch {
+                my $msg = shift;
+
+                # error_each 指定
+                if ( defined (my $subs = $self->{_subs_error}) ) {
+                    my $ref = ref $subs;
+                    my $sub;
+                    # $subs as arrayref
+                    if ($ref eq 'ARRAY') {
+                        $sub = $subs->[$i];
+                        $sub = $subs->[$sub]  if (ref $sub eq '');  # $sub がスカラ値 -> 別の sub へのエイリアス
+                    }
+                    # $subs as hashref
+                    elsif ($ref eq 'HASH') {
+                        $sub = $subs->{$i};
+                        $sub = $subs->{$sub}  if (ref $sub eq '');  # $sub がスカラ値 -> 別の sub へのエイリアス
+                    }
+                    $sub->($msg, $i);
+                }
+                # error_each 未指定
+                else {
+                    $self->{_sub_error}($msg, $i);
+                }
+            };
+            $i++;
         }
-        catch {
-            my $msg = shift;
-            $self->{_sub_error}($msg, $i);
-        };
-        $i++;
+    }
+    # $cases as hashref
+    elsif (ref $cases eq 'HASH') {
+        while ( my ($case_k, $case_v) = each %$cases ) {
+            try {
+                my $v = $self->{_sub_code}($case_v);
+                # success_each 指定
+                if ( defined (my $subs = $self->{_subs_success}) ) {
+                    my $sub = $subs->{$case_k};
+                    $sub = $subs->{$sub}  if (ref $sub eq '');  # $sub がスカラ値 -> 別の sub へのエイリアス
+                    $sub->($v, $case_k);
+                }
+                # success
+                else {
+                    $self->{_sub_success}($v, $case_k);
+                }
+            }
+            catch {
+                my $msg = shift;
+                # error_each 指定
+                if ( defined (my $subs = $self->{_subs_error}) ) {
+                    my $sub = $subs->{$case_k};
+                    $sub = $subs->{$sub}  if (ref $sub eq '');  # $sub がスカラ値 -> 別の sub へのエイリアス
+                    $sub->($msg, $case_k);
+                }
+                # error
+                else {
+                    $self->{_sub_error}($msg, $case_k);
+                }
+            };
+        }
     }
 }
 
@@ -72,7 +153,18 @@ sub __x_cases {
     my ($self) = @_;
     return sub {
         my ($cases) = @_;
-        push @{$self->{cases}}, @$cases;
+
+        # scalar
+        $cases = [$cases]  if ref $cases eq '';
+
+        # arrayref
+        if (ref $cases eq 'ARRAY') {
+            push @{$self->{cases}}, @$cases;
+        }
+        # hashref
+        elsif (ref $cases eq 'HASH') {
+            $self->{cases} = $cases;
+        }
     };
 }
 
@@ -101,6 +193,23 @@ sub __x_error {
 }
 
 
+sub __x_success_each {
+    my ($self) = @_;
+    return sub {
+        my ($subs) = @_;
+        $self->{_subs_success} = $subs;
+    };
+}
+
+sub __x_error_each {
+    my ($self) = @_;
+    return sub {
+        my ($subs) = @_;
+        $self->{_subs_error} = $subs;
+    };
+}
+
+
 sub __stub {
     my $func = shift;
     return sub {
@@ -108,10 +217,12 @@ sub __stub {
     };
 }
 
-*cases   = __stub 'cases';
-*code    = __stub 'code';
-*success = __stub 'success';
-*error   = __stub 'error';
+*cases        = __stub 'cases';
+*code         = __stub 'code';
+*success      = __stub 'success';
+*error        = __stub 'error';
+*success_each = __stub 'success_each';
+*error_each   = __stub 'error_each';
 
 
 1;
