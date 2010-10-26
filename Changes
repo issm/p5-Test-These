@@ -1,5 +1,16 @@
 Revision history for Perl extension Test::These
 
+0.00_05  Mon Oct 26 15:33:00 2010
+         - mod: hashref parameter is available in "cases"
+         - add: "success_each" block and "error_each" block
+
+0.00_04  Sat Oct 23 15:24:00 2010
+         - oops
+         - addeed test
+
+0.00_03  Sat Oct 23 15:19:00 2010
+         - addeed test
+
 0.00_02  Sun Oct  3 14:31:05 2010
          - mod: "success" block and "error" block
 
