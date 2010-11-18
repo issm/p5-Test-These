@@ -1,5 +1,9 @@
 Revision history for Perl extension Test::These
 
+0.00_08  Thu Nov 18 19:55:00 2010
+         - add: third parameter in callback sub(s) in "success", "error", "success_each" and "error_each"
+                that is parameter(s) as an item of "cases" in corresponding case
+
 0.00_07  Wed Oct 27 08:40:00 2010
          - add: functions of Test::More are imported
 

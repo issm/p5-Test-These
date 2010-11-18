@@ -6,7 +6,7 @@ use Carp;
 use Try::Tiny;
 use Test::More;
 
-our $VERSION = '0.00_07';
+our $VERSION = '0.00_08';
 
 
 sub import {
