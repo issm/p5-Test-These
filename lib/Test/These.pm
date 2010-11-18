@@ -88,11 +88,11 @@ sub _go {
                         $sub = $subs->{$i};
                         $sub = $subs->{$sub}  if (ref $sub eq '');  # $sub がスカラ値 -> 別の sub へのエイリアス
                     }
-                    $sub->($v, $i);
+                    $sub->($v, $i, $case);
                 }
                 # success_each 未指定
                 else {
-                    $self->{_sub_success}($v, $i);
+                    $self->{_sub_success}($v, $i, $case);
                 }
             }
             catch {
@@ -112,11 +112,11 @@ sub _go {
                         $sub = $subs->{$i};
                         $sub = $subs->{$sub}  if (ref $sub eq '');  # $sub がスカラ値 -> 別の sub へのエイリアス
                     }
-                    $sub->($msg, $i);
+                    $sub->($msg, $i, $case);
                 }
                 # error_each 未指定
                 else {
-                    $self->{_sub_error}($msg, $i);
+                    $self->{_sub_error}($msg, $i, $case);
                 }
             };
             $i++;
@@ -131,11 +131,11 @@ sub _go {
                 if ( defined (my $subs = $self->{_subs_success}) ) {
                     my $sub = $subs->{$case_k};
                     $sub = $subs->{$sub}  if (ref $sub eq '');  # $sub がスカラ値 -> 別の sub へのエイリアス
-                    $sub->($v, $case_k);
+                    $sub->($v, $case_k, $case_v);
                 }
                 # success
                 else {
-                    $self->{_sub_success}($v, $case_k);
+                    $self->{_sub_success}($v, $case_k, $case_v);
                 }
             }
             catch {
@@ -144,11 +144,11 @@ sub _go {
                 if ( defined (my $subs = $self->{_subs_error}) ) {
                     my $sub = $subs->{$case_k};
                     $sub = $subs->{$sub}  if (ref $sub eq '');  # $sub がスカラ値 -> 別の sub へのエイリアス
-                    $sub->($msg, $case_k);
+                    $sub->($msg, $case_k, $case_v);
                 }
                 # error
                 else {
-                    $self->{_sub_error}($msg, $case_k);
+                    $self->{_sub_error}($msg, $case_k, $case_v);
                 }
             };
         }
@@ -271,14 +271,17 @@ Test::These - tests these cases in one or less code.
 
       # no problem in "code" block
       success {
-          my ($got, $i) = @_;  # result of "code" block, and index of case
+          # result of "code" block,
+          # and index of case,
+          # and parameters of thie test case
+          my ($got, $i, $case) = @_;
           is $got, $expected;
           ...
       };
 
       # problem occured in "code" block
       error {
-          my ($got, $i) = @_;  # "$@" value(?), and index of case
+          my ($got, $i, $case) = @_;  # "$@" value(?), and index of case
           is $got, $expedted;
           ...
       };
@@ -299,7 +302,7 @@ Test::These - tests these cases in one or less code.
       success_each +{
           # executed when 'code' successes in case 'case1'
           case1 => sub {
-              my $got = shift;
+              my ($got, $case_name, $case_params) = @_;
               ...
           },
           # executed when 'code' successes in case 'case2'
